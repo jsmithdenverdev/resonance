@@ -17,8 +17,8 @@ const Callback: React.FC<CallbackProps> = ({ onSuccess }) => {
       // Sanitize URL parameters
       const sanitizeParam = (param: string | null): string | null => {
         if (!param) return null;
-        // Remove any HTML tags and limit length
-        return param.replace(/<[^>]*>/g, '').slice(0, 100);
+        // Remove any HTML tags but don't truncate authorization codes
+        return param.replace(/<[^>]*>/g, '');
       };
       
       const sanitizedCode = sanitizeParam(code);
