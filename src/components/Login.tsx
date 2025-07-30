@@ -14,7 +14,7 @@ const Login: React.FC<LoginProps> = () => {
     <div className="login">
       <div className="login-container">
         <div className="login-content">
-          <h1>Spotify Dashboard</h1>
+          <h1>Resonance</h1>
           <p>Discover your music listening patterns and top artists</p>
           
           <div className="features">
