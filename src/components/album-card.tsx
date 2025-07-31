@@ -52,7 +52,26 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({ album, rank, className = '
           <div className="text-gray-500 text-xs">
             {album.total_tracks} track{album.total_tracks !== 1 ? 's' : ''}
           </div>
+          {album.trackCount && (
+            <div className="text-green-400 text-sm font-medium">
+              {album.trackCount} song{album.trackCount !== 1 ? 's' : ''} in your top tracks
+            </div>
+          )}
         </div>
+        
+        {/* Top tracks for this album */}
+        {album.topTracks && album.topTracks.length > 0 && (
+          <div className="text-left mb-4">
+            <h4 className="text-gray-300 text-sm font-medium mb-2">Your top tracks:</h4>
+            <div className="space-y-1">
+              {album.topTracks.map((track, index) => (
+                <div key={index} className="text-gray-400 text-xs truncate">
+                  {index + 1}. {track}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         
         {/* Spotify link */}
         <a

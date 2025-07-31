@@ -18,7 +18,7 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist, rank, clas
       
       {/* Playlist image */}
       <div className="text-center mb-4">
-        {playlist.images[0] ? (
+        {playlist.images && playlist.images[0] ? (
           <img
             src={playlist.images[0].url}
             alt={playlist.name}

@@ -15,7 +15,7 @@ import {
   getCurrentUser, 
   getTopTracks, 
   getUserPlaylists, 
-  getUserSavedAlbums, 
+  getTopAlbumsFromTracks, 
   getTopGenres 
 } from '../services/spotify-api';
 import { clearToken } from '../services/spotify-auth';
@@ -71,7 +71,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
           currentFeature === 'artists' ? getTopArtists(timeRange, 50) :
           currentFeature === 'tracks' ? getTopTracks(timeRange, 50) :
           currentFeature === 'genres' ? getTopGenres(timeRange) :
-          currentFeature === 'albums' ? getUserSavedAlbums(50) :
+          currentFeature === 'albums' ? getTopAlbumsFromTracks(timeRange, 50) :
           currentFeature === 'playlists' ? getUserPlaylists(50) :
           getTopArtists(timeRange, 50)
         ]);
@@ -80,7 +80,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         dataPromise = currentFeature === 'artists' ? getTopArtists(timeRange, 50) :
                      currentFeature === 'tracks' ? getTopTracks(timeRange, 50) :
                      currentFeature === 'genres' ? getTopGenres(timeRange) :
-                     currentFeature === 'albums' ? getUserSavedAlbums(50) :
+                     currentFeature === 'albums' ? getTopAlbumsFromTracks(timeRange, 50) :
                      currentFeature === 'playlists' ? getUserPlaylists(50) :
                      getTopArtists(timeRange, 50);
       }
@@ -106,8 +106,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         } else if (currentFeature === 'genres') {
           setGenres(featureData as unknown as GenreData[]);
         } else if (currentFeature === 'albums') {
-          const albumData = Array.isArray(featureData) ? featureData : (featureData as any).items || [];
-          setAlbums(albumData.map((item: any) => item.album || item));
+          // getTopAlbumsFromTracks returns array directly, not wrapped in items
+          const albumData = Array.isArray(featureData) ? featureData : [];
+          setAlbums(albumData.map((item: any) => ({
+            ...item.album,
+            trackCount: item.trackCount,
+            topTracks: item.topTracks
+          })));
         } else if (currentFeature === 'playlists') {
           setPlaylists(Array.isArray(featureData) ? featureData as unknown as Playlist[] : (featureData as any).items || []);
         }
@@ -125,8 +130,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         } else if (currentFeature === 'genres') {
           setGenres(data as unknown as GenreData[]);
         } else if (currentFeature === 'albums') {
-          const albumData = Array.isArray(data) ? data : (data as any).items || [];
-          setAlbums(albumData.map((item: any) => item.album || item));
+          // getTopAlbumsFromTracks returns array directly, not wrapped in items
+          const albumData = Array.isArray(data) ? data : [];
+          setAlbums(albumData.map((item: any) => ({
+            ...item.album,
+            trackCount: item.trackCount,
+            topTracks: item.topTracks
+          })));
         } else if (currentFeature === 'playlists') {
           setPlaylists(Array.isArray(data) ? data as unknown as Playlist[] : (data as any).items || []);
         }
@@ -336,7 +346,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         />
 
         {/* Time range selector - only show for time-based features */}
-        {(selectedFeature === 'artists' || selectedFeature === 'tracks' || selectedFeature === 'genres') && (
+        {(selectedFeature === 'artists' || selectedFeature === 'tracks' || selectedFeature === 'genres' || selectedFeature === 'albums') && (
           <div className="text-center mb-8">
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center flex-wrap">
               {(['short_term', 'medium_term', 'long_term'] as const).map((range: TimeRange) => (

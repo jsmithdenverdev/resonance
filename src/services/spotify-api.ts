@@ -116,6 +116,84 @@ export const getUserSavedAlbums = async (
   return makeSpotifyRequest(endpoint);
 };
 
+export const getTopAlbumsFromTracks = async (
+  timeRange: TimeRange = 'medium_term',
+  limit: number = 50
+): Promise<Array<{ album: any; trackCount: number; topTracks: string[] }>> => {
+  try {
+    logger.info('Calculating top albums from user tracks', { timeRange, limit });
+    
+    // Get top tracks (maximum 50)
+    const tracksResponse = await getTopTracks(timeRange, 50);
+    const tracks = tracksResponse.items || [];
+    
+    // Group tracks by album
+    const albumMap = new Map<string, {
+      album: any;
+      trackCount: number;
+      topTracks: string[];
+      totalPopularity: number;
+    }>();
+    
+    tracks.forEach((track) => {
+      const albumId = track.album.id;
+      const albumData = albumMap.get(albumId);
+      
+      if (albumData) {
+        // Album already exists, increment count
+        albumData.trackCount += 1;
+        albumData.topTracks.push(track.name);
+        albumData.totalPopularity += track.popularity;
+      } else {
+        // New album
+        albumMap.set(albumId, {
+          album: {
+            id: track.album.id,
+            name: track.album.name,
+            images: track.album.images,
+            artists: (track.album as any).artists || [{ id: track.artists[0]?.id || '', name: track.artists[0]?.name || 'Unknown Artist' }],
+            release_date: (track.album as any).release_date || 'Unknown',
+            total_tracks: (track.album as any).total_tracks || 1,
+            album_type: (track.album as any).album_type || 'album',
+            external_urls: track.album.external_urls || track.external_urls,
+          },
+          trackCount: 1,
+          topTracks: [track.name],
+          totalPopularity: track.popularity,
+        });
+      }
+    });
+    
+    // Convert to array and sort by track count (then by average popularity)
+    const albumsArray = Array.from(albumMap.values())
+      .map(item => ({
+        album: item.album,
+        trackCount: item.trackCount,
+        topTracks: item.topTracks.slice(0, 3), // Only keep top 3 track names
+        averagePopularity: item.totalPopularity / item.trackCount,
+      }))
+      .sort((a, b) => {
+        // Primary sort: track count (more tracks = higher rank)
+        if (b.trackCount !== a.trackCount) {
+          return b.trackCount - a.trackCount;
+        }
+        // Secondary sort: average popularity
+        return b.averagePopularity - a.averagePopularity;
+      })
+      .slice(0, limit);
+    
+    logger.info('Top albums calculated successfully', { 
+      totalAlbums: albumsArray.length,
+      timeRange 
+    });
+    
+    return albumsArray;
+  } catch (error) {
+    logger.error('Failed to calculate top albums from tracks', { error, timeRange });
+    throw error;
+  }
+};
+
 export const getTopGenres = async (
   timeRange: TimeRange = 'medium_term'
 ): Promise<GenreData[]> => {

@@ -88,6 +88,9 @@ export type Album = {
   external_urls: {
     spotify: string;
   };
+  // Optional fields for top albums analysis
+  trackCount?: number;
+  topTracks?: string[];
 };
 
 export type Playlist = {

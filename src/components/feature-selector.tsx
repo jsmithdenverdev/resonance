@@ -26,7 +26,7 @@ const featureOptions: FeatureOption[] = [
   {
     id: 'albums',
     label: 'Albums',
-    description: 'Your saved albums',
+    description: 'Your most played albums',
   },
   {
     id: 'playlists',
