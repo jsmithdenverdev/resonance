@@ -1,24 +1,31 @@
 import { useState, useEffect } from 'react';
-import Dashboard from './components/Dashboard';
-import Login from './components/Login';
-import Callback from './components/Callback';
-import { getStoredToken } from './services/spotifyAuth';
-import './App.css'
+import { Dashboard } from './pages/dashboard';
+import { Login } from './pages/login';
+import { Callback } from './pages/callback';
+import { getStoredTokenSync } from './services/spotify-auth';
+import { logger } from './services/logger';
 
-function App() {
+export const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCallback, setIsCallback] = useState(false);
 
   useEffect(() => {
-    const token = getStoredToken();
+    const token = getStoredTokenSync();
     setIsAuthenticated(!!token);
+    logger.info('App initialized', { isAuthenticated: !!token });
     
     // Check if this is a callback URL
     const urlParams = new URLSearchParams(window.location.search);
-    setIsCallback(urlParams.has('code') || urlParams.has('error'));
+    const isCallbackUrl = urlParams.has('code') || urlParams.has('error');
+    setIsCallback(isCallbackUrl);
+    
+    if (isCallbackUrl) {
+      logger.info('Detected OAuth callback URL');
+    }
   }, []);
 
   const handleLogin = () => {
+    logger.info('User successfully logged in');
     setIsAuthenticated(true);
     // Clear URL parameters and redirect to main page
     window.history.replaceState({}, document.title, '/');
@@ -26,6 +33,7 @@ function App() {
   };
 
   const handleLogout = () => {
+    logger.info('User logged out');
     setIsAuthenticated(false);
   };
 
@@ -34,7 +42,7 @@ function App() {
   }
 
   return (
-    <div className="app">
+    <div className="min-h-screen w-full bg-neutral-950 font-sans">
       {isAuthenticated ? (
         <Dashboard onLogout={handleLogout} />
       ) : (
@@ -44,4 +52,3 @@ function App() {
   );
 }
 
-export default App
